@@ -3,12 +3,12 @@ project_name: "gcp_audit"
 ################# Constants #################
 
 constant: CONNECTION_NAME {
-  value: "galec-bdata-sbx"
+  value: "looker-bigquery-connection"
   export: override_required
 }
 
 constant: SCHEMA_NAME {
-  value: "LogsPoc"
+  value: "bigquery_logs"
   export: override_required
 }
 
