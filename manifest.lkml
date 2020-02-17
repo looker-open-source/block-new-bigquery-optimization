@@ -3,12 +3,12 @@ project_name: "gcp_audit"
 ################# Constants #################
 
 constant: CONNECTION_NAME {
-  value: "looker-bigquery-connection"
+  value: "looker_application"
   export: override_required
 }
 
 constant: SCHEMA_NAME {
-  value: "bigquery_logs"
+  value: "looker_app_audit_log"
   export: override_required
 }
 

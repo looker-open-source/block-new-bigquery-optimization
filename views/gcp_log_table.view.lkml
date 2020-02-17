@@ -1,5 +1,18 @@
-view: cloudaudit_googleapis_com_data_access {
-  sql_table_name: LogsPoc.cloudaudit_googleapis_com_data_access ;;
+view: bigquery_data_access {
+
+  derived_table: {
+    sql:
+      SELECT
+        *
+      FROM
+        `@{SCHEMA_NAME}.@{AUDIT_LOG_EXPORT_TABLE_NAME}`
+      WHERE
+        {% condition date_filter %} timestamp {% endcondition %} ;;
+  }
+
+  filter: date_filter {
+    type: date
+  }
 
   dimension: http_request {
     hidden: yes
@@ -7,6 +20,7 @@ view: cloudaudit_googleapis_com_data_access {
   }
 
   dimension: insert_id {
+    primary_key: yes
     type: string
     sql: ${TABLE}.insertId ;;
   }
@@ -27,6 +41,7 @@ view: cloudaudit_googleapis_com_data_access {
   }
 
   dimension_group: receive_timestamp {
+    hidden:  yes
     type: time
     timeframes: [
       raw,
@@ -55,17 +70,8 @@ view: cloudaudit_googleapis_com_data_access {
     sql: ${TABLE}.sourceLocation ;;
   }
 
-  dimension: span_id {
-    type: string
-    sql: ${TABLE}.spanId ;;
-  }
-
-  dimension: text_payload {
-    type: string
-    sql: ${TABLE}.textPayload ;;
-  }
-
   dimension_group: timestamp {
+    hidden:  yes
     type: time
     timeframes: [
       raw,
@@ -84,14 +90,10 @@ view: cloudaudit_googleapis_com_data_access {
     sql: ${TABLE}.trace ;;
   }
 
-  dimension: trace_sampled {
-    type: yesno
-    sql: ${TABLE}.traceSampled ;;
-  }
-
   measure: number_of_queries {
     view_label: "BigQuery Data Access: Query Statistics"
     type: count
+
     drill_fields: [bigquery_data_access_authentication_info.user_id
       , bigquery_data_access_job_statistics.start_time
       , bigquery_data_access_resource_labels.project_id
@@ -111,6 +113,7 @@ view: cloudaudit_googleapis_com_data_access {
       field: bigquery_data_access_job_statistics.billed_gigabytes
       value: ">30"
     }
+
     drill_fields: [bigquery_data_access_authentication_info.user_id
       , bigquery_data_access_job_statistics.start_time
       , bigquery_data_access_resource_labels.project_id
@@ -123,32 +126,29 @@ view: cloudaudit_googleapis_com_data_access {
   }
 }
 
-
-view: cloudaudit_googleapis_com_data_access__resource {
+view: bigquery_data_access_resource {
   dimension: labels {
     hidden: yes
     sql: ${TABLE}.labels ;;
   }
 
   dimension: type {
+    hidden: yes
     type: string
     sql: ${TABLE}.type ;;
   }
 }
 
-view: cloudaudit_googleapis_com_data_access__resource__labels {
-  dimension: location {
-    type: string
-    sql: ${TABLE}.location ;;
-  }
+view: bigquery_data_access_resource_labels {
 
   dimension: project_id {
+    view_label: "BigQuery Data Access"
     type: string
     sql: ${TABLE}.project_id ;;
   }
 }
 
-view: cloudaudit_googleapis_com_data_access__http_request {
+view: bigquery_data_access_http_request {
   dimension: cache_fill_bytes {
     type: number
     sql: ${TABLE}.cacheFillBytes ;;
@@ -220,7 +220,7 @@ view: cloudaudit_googleapis_com_data_access__http_request {
   }
 }
 
-view: cloudaudit_googleapis_com_data_access__source_location {
+view: bigquery_data_access_source_location {
   dimension: file {
     type: string
     sql: ${TABLE}.file ;;
@@ -237,215 +237,50 @@ view: cloudaudit_googleapis_com_data_access__source_location {
   }
 }
 
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__request_metadata {
+view: bigquery_data_access_request_metadata {
   dimension: caller_ip {
     type: string
     sql: ${TABLE}.callerIp ;;
-  }
-
-  dimension: caller_network {
-    type: string
-    sql: ${TABLE}.callerNetwork ;;
   }
 
   dimension: caller_supplied_user_agent {
     type: string
     sql: ${TABLE}.callerSuppliedUserAgent ;;
   }
-
-  dimension: destination_attributes {
-    hidden: yes
-    sql: ${TABLE}.destinationAttributes ;;
-  }
-
-  dimension: request_attributes {
-    hidden: yes
-    sql: ${TABLE}.requestAttributes ;;
-  }
 }
 
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__request_metadata__request_attributes__headers {
-  dimension: key {
-    type: string
-    sql: ${TABLE}.key ;;
-  }
-
-  dimension: value {
-    type: string
-    sql: ${TABLE}.value ;;
-  }
-}
-
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__request_metadata__request_attributes {
-  drill_fields: [id]
-
-  dimension: id {
-    primary_key: yes
-    type: string
-    sql: ${TABLE}.id ;;
-  }
-
-  dimension: auth {
-    hidden: yes
-    sql: ${TABLE}.auth ;;
-  }
-
-  dimension: headers {
-    hidden: yes
-    sql: ${TABLE}.headers ;;
-  }
-
-  dimension: host {
-    type: string
-    sql: ${TABLE}.host ;;
-  }
-
-  dimension: method {
-    type: string
-    sql: ${TABLE}.method ;;
-  }
-
-  dimension: path {
-    type: string
-    sql: ${TABLE}.path ;;
-  }
-
-  dimension: protocol {
-    type: string
-    sql: ${TABLE}.protocol ;;
-  }
-
-  dimension: query {
-    type: string
-    sql: ${TABLE}.query ;;
-  }
-
-  dimension: reason {
-    type: string
-    sql: ${TABLE}.reason ;;
-  }
-
-  dimension: scheme {
-    type: string
-    sql: ${TABLE}.scheme ;;
-  }
-
-  dimension: size {
-    type: number
-    sql: ${TABLE}.size ;;
-  }
-
-  dimension_group: time {
-    type: time
-    timeframes: [
-      raw,
-      time,
-      date,
-      week,
-      month,
-      quarter,
-      year
-    ]
-    sql: ${TABLE}.time ;;
-  }
-}
-
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__request_metadata__request_attributes__auth {
-  dimension: access_levels {
-    type: string
-    sql: ${TABLE}.accessLevels ;;
-  }
-
-  dimension: audiences {
-    type: string
-    sql: ${TABLE}.audiences ;;
-  }
-
-  dimension: presenter {
-    type: string
-    sql: ${TABLE}.presenter ;;
-  }
-
-  dimension: principal {
-    type: string
-    sql: ${TABLE}.principal ;;
-  }
-}
-
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__request_metadata__destination_attributes {
-  dimension: ip {
-    type: string
-    sql: ${TABLE}.ip ;;
-  }
-
-  dimension: labels {
-    hidden: yes
-    sql: ${TABLE}.labels ;;
-  }
-
-  dimension: port {
-    type: number
-    sql: ${TABLE}.port ;;
-  }
-
-  dimension: principal {
-    type: string
-    sql: ${TABLE}.principal ;;
-  }
-
-  dimension: region_code {
-    type: string
-    sql: ${TABLE}.regionCode ;;
-  }
-}
-
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__request_metadata__destination_attributes__labels {
-  dimension: key {
-    type: string
-    sql: ${TABLE}.key ;;
-  }
-
-  dimension: value {
-    type: string
-    sql: ${TABLE}.value ;;
-  }
-}
-
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__authentication_info {
+view: bigquery_data_access_authentication_info {
   dimension: authority_selector {
+    hidden: yes
     type: string
     sql: ${TABLE}.authoritySelector ;;
   }
 
-  dimension: principal_email {
+  dimension: user_id {
+    label: "User ID"
     type: string
     sql: ${TABLE}.principalEmail ;;
   }
 
-  dimension: principal_subject {
-    type: string
-    sql: ${TABLE}.principalSubject ;;
+  dimension: is_service_account {
+    type: yesno
+    sql: (${user_id} LIKE '%gserviceaccount%') ;;
+
   }
 
-  dimension: service_account_delegation_info {
-    hidden: yes
-    sql: ${TABLE}.serviceAccountDelegationInfo ;;
-  }
-
-  dimension: service_account_key_name {
-    type: string
-    sql: ${TABLE}.serviceAccountKeyName ;;
-  }
-}
-
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__authentication_info__service_account_delegation_info__first_party_principal {
-  dimension: principal_email {
-    type: string
-    sql: ${TABLE}.principalEmail ;;
+  measure: number_of_active_users {
+    description: "Excludes Service Accounts"
+    type: count_distinct
+    sql: ${user_id} ;;
+    filters: {
+      field: is_service_account
+      value: "no"
+    }
+    drill_fields: [user_id]
   }
 }
 
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__authorization_info {
+view: bigquery_data_authorization_info {
   dimension: granted {
     type: yesno
     sql: ${TABLE}.granted ;;
@@ -460,48 +295,9 @@ view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__authorizatio
     type: string
     sql: ${TABLE}.resource ;;
   }
-
-  dimension: resource_attributes {
-    hidden: yes
-    sql: ${TABLE}.resourceAttributes ;;
-  }
 }
 
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__authorization_info__resource_attributes {
-  dimension: labels {
-    hidden: yes
-    sql: ${TABLE}.labels ;;
-  }
-
-  dimension: name {
-    type: string
-    sql: ${TABLE}.name ;;
-  }
-
-  dimension: service {
-    type: string
-    sql: ${TABLE}.service ;;
-  }
-
-  dimension: type {
-    type: string
-    sql: ${TABLE}.type ;;
-  }
-}
-
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__authorization_info__resource_attributes__labels {
-  dimension: key {
-    type: string
-    sql: ${TABLE}.key ;;
-  }
-
-  dimension: value {
-    type: string
-    sql: ${TABLE}.value ;;
-  }
-}
-
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog {
+view: bigquery_data_access_payload {
   dimension: authentication_info {
     hidden: yes
     sql: ${TABLE}.authenticationInfo ;;
@@ -513,6 +309,7 @@ view: cloudaudit_googleapis_com_data_access__protopayload_auditlog {
   }
 
   dimension: metadata_json {
+    hidden: yes
     type: string
     sql: ${TABLE}.metadataJson ;;
   }
@@ -528,6 +325,7 @@ view: cloudaudit_googleapis_com_data_access__protopayload_auditlog {
   }
 
   dimension: request_json {
+    hidden: yes
     type: string
     sql: ${TABLE}.requestJson ;;
   }
@@ -558,33 +356,381 @@ view: cloudaudit_googleapis_com_data_access__protopayload_auditlog {
   }
 }
 
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__resource_location {
-  dimension: current_locations {
+view: bigquery_data_access_metadata_json {
+
+  dimension: jobInsertion {
+    hidden: yes
     type: string
-    sql: ${TABLE}.currentLocations ;;
+    sql: JSON_EXTRACT(${TABLE}, '$.jobInsertion') ;;
   }
 
-  dimension: original_locations {
-    type: string
-    sql: ${TABLE}.originalLocations ;;
+  dimension: job_completed_event {
+    hidden: yes
+    sql: ${TABLE}.jobCompletedEvent ;;
+  }
+
+  dimension: job_get_query_results_request {
+    hidden: yes
+    sql: ${TABLE}.jobGetQueryResultsRequest ;;
+  }
+
+  dimension: job_get_query_results_response {
+    hidden: yes
+    sql: ${TABLE}.jobGetQueryResultsResponse ;;
+  }
+
+  dimension: job_insert_request {
+    hidden: yes
+    sql: ${TABLE}.jobInsertRequest ;;
+  }
+
+  dimension: job_insert_response {
+    hidden: yes
+    sql: ${TABLE}.jobInsertResponse ;;
+  }
+
+  dimension: job_query_request {
+    hidden: yes
+    sql: ${TABLE}.jobQueryRequest ;;
+  }
+
+  dimension: job_query_response {
+    hidden: yes
+    sql: ${TABLE}.jobQueryResponse ;;
+  }
+
+  dimension: table_data_list_request {
+    hidden: yes
+    sql: ${TABLE}.tableDataListRequest ;;
   }
 }
 
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__status {
+view: bigquery_data_access_job_insertion {
+  dimension: job {
+    hidden: yes
+    type: string
+    sql: JSON_EXTRACT(${TABLE}, '$.job') ;;
+  }
+
+  dimension: reason {
+    type: string
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.reason') ;;
+  }
+}
+
+view: bigquery_data_access_job {
+  dimension: job_config {
+    hidden: yes
+    sql: JSON_EXTRACT(${TABLE}, '$.jobConfig') ;;
+  }
+
+  dimension: job_name {
+    type: string
+    hidden: yes
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.jobName') ;;
+  }
+
+  dimension: job_stats {
+    hidden: yes
+    sql: JSON_EXTRACT(${TABLE}, '$.jobStats') ;;
+  }
+
+  dimension: job_status {
+    hidden: yes
+    sql: JSON_EXTRACT(${TABLE}, '$.jobStatus') ;;
+  }
+}
+
+view: bigquery_data_access_job_configuration {
+  dimension: query {
+    hidden: yes
+    sql: JSON_EXTRACT(${TABLE}, '$.queryConfig') ;;
+  }
+}
+
+view: bigquery_data_access_job_statistics {
+  dimension: billing_tier {
+    type: number
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.queryStats.billingTier') ;;
+  }
+
+  dimension_group: create {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      quarter,
+      year
+    ]
+    sql: CAST(JSON_EXTRACT_SCALAR(${TABLE}, '$.createTime') AS TIMESTAMP) ;;
+  }
+
+  dimension_group: end {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      quarter,
+      year
+    ]
+    sql: CAST(JSON_EXTRACT_SCALAR(${TABLE}, '$.endTime') AS TIMESTAMP) ;;
+  }
+
+  dimension_group: start {
+    type: time
+    timeframes: [
+      raw,
+      time,
+      date,
+      week,
+      month,
+      quarter,
+      year
+    ]
+    sql: CAST(JSON_EXTRACT_SCALAR(${TABLE}, '$.startTime') AS TIMESTAMP) ;;
+  }
+
+  dimension: billed_bytes {
+    type: number
+    sql: CAST(JSON_EXTRACT_SCALAR(${TABLE}, '$.queryStats.totalBilledBytes') AS INT64) ;;
+  }
+
+  dimension: processed_bytes {
+    type: number
+    sql: CAST(JSON_EXTRACT_SCALAR(${TABLE}, '$.queryStats.totalProcessedBytes') AS INT64) ;;
+  }
+
+  dimension: billed_gigabytes {
+    type: number
+    sql: 1.0*${billed_bytes}/1000000000 ;;
+  }
+
+  dimension: billed_terabytes {
+    type: number
+    sql: 1.0*${billed_bytes}/1000000000000 ;;
+  }
+
+  measure: total_billed_gigabytes {
+    type: sum
+    view_label: "BigQuery Data Access: Query Statistics"
+    sql: ${billed_gigabytes} ;;
+    value_format_name: decimal_2
+    drill_fields: [bigquery_data_access_authentication_info.user_id
+      , bigquery_data_access_job_statistics.start_time
+      , bigquery_data_access_resource_labels.project_id
+      , bigquery_data_access_query.query
+      , bigquery_data_access_job_statistics.billed_gigabytes
+      , bigquery_data_access_job_statistics.query_runtime
+      , bigquery_data_access_job_statistics.query_cost
+      , bigquery_data_access_job_status_error.code
+      , bigquery_data_access_job_status_error.message]
+  }
+
+  measure: total_billed_terabytes {
+    type: sum
+    view_label: "BigQuery Data Access: Query Statistics"
+    sql: ${billed_terabytes} ;;
+    value_format_name: decimal_2
+    drill_fields: [bigquery_data_access_authentication_info.user_id
+      , bigquery_data_access_job_statistics.start_time
+      , bigquery_data_access_resource_labels.project_id
+      , bigquery_data_access_query.query
+      , bigquery_data_access_job_statistics.billed_gigabytes
+      , bigquery_data_access_job_statistics.query_runtime
+      , bigquery_data_access_job_statistics.query_cost
+      , bigquery_data_access_job_status_error.code
+      , bigquery_data_access_job_status_error.message]
+  }
+
+  measure: average_billed_gigabytes {
+    type: average
+    view_label: "BigQuery Data Access: Query Statistics"
+    sql: ${billed_gigabytes} ;;
+    value_format_name: decimal_2
+    drill_fields: [bigquery_data_access_authentication_info.user_id
+      , bigquery_data_access_job_statistics.start_time
+      , bigquery_data_access_resource_labels.project_id
+      , bigquery_data_access_query.query
+      , bigquery_data_access_job_statistics.billed_gigabytes
+      , bigquery_data_access_job_statistics.query_runtime
+      , bigquery_data_access_job_statistics.query_cost
+      , bigquery_data_access_job_status_error.code
+      , bigquery_data_access_job_status_error.message]
+  }
+
+  measure: average_billed_terabytes {
+    type: average
+    view_label: "BigQuery Data Access: Query Statistics"
+    sql: ${billed_terabytes} ;;
+    value_format_name: decimal_2
+    drill_fields: [bigquery_data_access_authentication_info.user_id
+      , bigquery_data_access_job_statistics.start_time
+      , bigquery_data_access_resource_labels.project_id
+      , bigquery_data_access_query.query
+      , bigquery_data_access_job_statistics.billed_gigabytes
+      , bigquery_data_access_job_statistics.query_runtime
+      , bigquery_data_access_job_statistics.query_cost
+      , bigquery_data_access_job_status_error.code
+      , bigquery_data_access_job_status_error.message]
+  }
+
+  dimension: query_cost {
+    type: number
+    sql: 5.0*${billed_bytes}/1000000000000 ;;
+    value_format_name: usd
+  }
+
+  measure: total_query_cost {
+    type: sum
+    sql: ${query_cost} ;;
+    value_format_name: usd
+    drill_fields: [bigquery_data_access_authentication_info.user_id
+      , bigquery_data_access_job_statistics.start_time
+      , bigquery_data_access_resource_labels.project_id
+      , bigquery_data_access_query.query
+      , bigquery_data_access_job_statistics.billed_gigabytes
+      , bigquery_data_access_job_statistics.query_runtime
+      , bigquery_data_access_job_statistics.query_cost
+      , bigquery_data_access_job_status_error.code
+      , bigquery_data_access_job_status_error.message]
+  }
+
+  measure: average_query_cost {
+    type: average
+    sql: ${query_cost} ;;
+    value_format_name: usd
+    drill_fields: [bigquery_data_access_authentication_info.user_id
+      , bigquery_data_access_job_statistics.start_time
+      , bigquery_data_access_resource_labels.project_id
+      , bigquery_data_access_query.query
+      , bigquery_data_access_job_statistics.billed_gigabytes
+      , bigquery_data_access_job_statistics.query_runtime
+      , bigquery_data_access_job_statistics.query_cost
+      , bigquery_data_access_job_status_error.code
+      , bigquery_data_access_job_status_error.message]
+  }
+
+  dimension: query_runtime {
+    type: number
+    sql: 1.0*TIMESTAMP_DIFF(${end_raw}, ${start_raw}, MILLISECOND)/1000 ;;
+    value_format_name: decimal_1
+  }
+
+  measure: average_query_runtime {
+    type: average
+    sql: ${query_runtime} ;;
+    value_format_name: decimal_1
+    drill_fields: [bigquery_data_access_authentication_info.user_id
+      , bigquery_data_access_job_statistics.start_time
+      , bigquery_data_access_resource_labels.project_id
+      , bigquery_data_access_query.query
+      , bigquery_data_access_job_statistics.billed_gigabytes
+      , bigquery_data_access_job_statistics.query_runtime
+      , bigquery_data_access_job_statistics.query_cost
+      , bigquery_data_access_job_status_error.code
+      , bigquery_data_access_job_status_error.message]
+  }
+}
+
+view: bigquery_data_access_job_status {
+  dimension: error {
+    hidden: yes
+    sql: JSON_EXTRACT(${TABLE}, '$.errorResult') ;;
+  }
+
+  dimension: state {
+    type: string
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.jobState');;
+  }
+
+  dimension: query_failed {
+    type: yesno
+    sql: ${error} IS NOT NULL ;;
+  }
+}
+
+view: bigquery_data_access_job_status_error {
   dimension: code {
     type: number
-    sql: ${TABLE}.code ;;
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.code') ;;
   }
 
   dimension: message {
     type: string
-    sql: ${TABLE}.message ;;
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.message') ;;
+  }
+
+}
+
+view: bigquery_data_access_query {
+
+  filter: query_text_filter {
+    type: string
+  }
+
+  dimension: query_text_selector {
+    type: string
+    case: {
+      when: {
+        sql: {% condition query_text_filter %} ${query} {% endcondition %} ;;
+        label: "Queries with Specified Pattern"
+      }
+      else: "All Other Queries"
+    }
+  }
+
+  dimension: create_disposition {
+    type: string
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.createDisposition') ;;
+  }
+
+  dimension: default_dataset {
+    hidden: yes
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.defaultDataset') ;;
+  }
+
+  dimension: query {
+    type: string
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.query') ;;
+  }
+
+  dimension: table_definitions {
+    hidden: yes
+    sql: JSON_EXTRACT(${TABLE}, '$.tableDefinitions') ;;
+  }
+
+  dimension: write_disposition {
+    type: string
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$.writeDisposition') ;;
   }
 }
 
-view: cloudaudit_googleapis_com_data_access__operation {
-  drill_fields: [id]
+view: bigquery_data_access_query_destination_table {
+  dimension: destination_table {
+    hidden: yes
+    sql: JSON_EXTRACT_SCALAR(${TABLE}, '$') ;;
+  }
 
+  dimension: project_id {
+    sql: SPLIT(${destination_table}, "/")[OFFSET(1)] ;;
+  }
+
+  dimension: dataset_id {
+    sql: SPLIT(${destination_table}, "/")[OFFSET(3)] ;;
+  }
+
+  dimension: table_id {
+    sql: SPLIT(${destination_table}, "/")[OFFSET(5)] ;;
+  }
+}
+
+view: bigquery_data_access_operation {
   dimension: id {
     primary_key: yes
     type: string
@@ -604,12 +750,5 @@ view: cloudaudit_googleapis_com_data_access__operation {
   dimension: producer {
     type: string
     sql: ${TABLE}.producer ;;
-  }
-}
-
-view: cloudaudit_googleapis_com_data_access__protopayload_auditlog__authentication_info__service_account_delegation_info {
-  dimension: first_party_principal {
-    hidden: yes
-    sql: ${TABLE}.firstPartyPrincipal ;;
   }
 }
