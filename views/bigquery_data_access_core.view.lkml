@@ -1,6 +1,6 @@
-include: "//@{CONFIG_PROJECT_NAME}/bigquery_data_access.view.lkml" 
-        
-        
+include: "//@{CONFIG_PROJECT_NAME}/bigquery_data_access.view.lkml"
+
+
 view: bigquery_data_access {
   extends: [bigquery_data_access_config]
 }
@@ -96,7 +96,7 @@ view: bigquery_data_access_operation {
 }
 
 ###################################################
-        
+
         view: bigquery_data_access_core {
   derived_table: {
     sql: SELECT
@@ -190,7 +190,7 @@ view: bigquery_data_access_operation {
   measure: number_of_queries {
     view_label: "BigQuery Data Access: Query Statistics"
     type: count
-    
+
     drill_fields: [
       bigquery_data_access_authentication_info.user_id,
       bigquery_data_access_job_statistics.start_time,
@@ -781,7 +781,8 @@ view: bigquery_data_access_job_status_error_core {
 }
 
 view: bigquery_data_access_query_core {
-  filters: query_text_filter {
+
+  filter: query_text_filter {
     type: string
   }
 
