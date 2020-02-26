@@ -31,7 +31,7 @@
   "auxiliary_projects": [
     {
       "git_uri": "git://github.com/looker/block-new-bigquery-optimization-config.git",
-      "git_ref": "62d22a3bf442a3ce938749d28c8f60276ea402a9",
+      "git_ref": "14de6aaea6899faa8852f48268b72515aca4d392",
       "label": "Google BigQuery Performance Config",
       "constant_name": "CONFIG_PROJECT_NAME"
     }
