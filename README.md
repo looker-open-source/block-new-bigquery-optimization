@@ -1,6 +1,10 @@
-# GCP Billing and BigQuery Audit
+# GCP Billing and BigQuery AuditMetaData
 
-This repository contains a Looker block for analyzing **BigQuery data access logs**. The model sits on top of a Stackdriver Logging export of BigQuery queries and data access. This allows you to effectively monitor BigQuery performance and cost at a per user level. It can be used to set up alerts to long running or high cost queries. Below we also detail a method to analyse these logs across several projects, allowing you to visualise your BigQuery organization in one place.
+This repository contains a Looker block for analyzing the [**new output of BigQuery data access logs**](https://cloud.google.com/bigquery/docs/reference/auditlogs/rest/Shared.Types/BigQueryAuditMetadata). According to the [Release Notes](https://cloud.google.com/bigquery/docs/release-notes#January_22_2019), these types of logs were implemented in January of 2019.
+
+Read more about the differences between the new ([BigQueryAuditMetaData](https://cloud.google.com/bigquery/docs/reference/auditlogs/rest/Shared.Types/BigQueryAuditMetadata?hl=en_US)) and old ([AuditData](https://cloud.google.com/bigquery/docs/reference/auditlogs/rest/Shared.Types/AuditData?hl=en_US)) logging records [**in BigQuery's Documentation**](https://cloud.google.com/bigquery/docs/reference/auditlogs/?hl=en_US).
+
+The model sits on top of a Stackdriver Logging export of BigQuery queries and data access. This allows you to effectively monitor BigQuery performance and cost at a per user level. It can be used to set up alerts to long running or high cost queries. Below we also detail a method to analyse these logs across several projects, allowing you to visualise your BigQuery organization in one place.
 
 ## Getting Started
 
@@ -12,7 +16,7 @@ Create a BigQuery dataset for the BigQuery audit logs. Go to the Google Cloud Pl
 
 *Optional:* We recommend setting up a new GCP Project, purely for this purpose.
 
-### Setting up BigQuery audit logs export
+### Setting up BigQuery logs export
 
 To set up the BigQuery log export do the following in a project that contains BigQuery:
 
